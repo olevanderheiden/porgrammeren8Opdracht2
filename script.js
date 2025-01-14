@@ -7,12 +7,15 @@ const videoSelect = document.getElementById("videoSelect");
 const cameraName = document.getElementById("cameraName");
 const mirrorButton = document.getElementById("mirrorButton");
 const displayCamera = document.getElementById("displayCamera");
+const showIndicators = document.getElementById("showIndicators");
+const controls = document.getElementById("controls");
 
 let isMirrored = false;
 let prevX = null;
 let prevY = null;
 let isDrawing = true;
-let isShowingIndicators = true;
+let prevPoints = [];
+let isShowingIndicators = false;
 
 // Mirror the video
 mirrorButton.onclick = () => {
@@ -20,11 +23,24 @@ mirrorButton.onclick = () => {
   videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
 };
 
+//show indicators
+showIndicators.onclick = () => {
+  0;
+};
+
 //display camera
 displayCamera.onclick = () => {
   isShowingIndicators = !isShowingIndicators;
   videoElement.className = isShowingIndicators ? "display" : "hide";
 };
+
+// Toggle controls visibility with "c" key
+document.addEventListener("keydown", (event) => {
+  if (event.key === "c" || event.key === "C") {
+    controls.style.display =
+      controls.style.display === "none" ? "block" : "none";
+  }
+});
 
 // Populate video device options
 async function getCameras() {
@@ -78,43 +94,43 @@ async function initializeHandLandmarker() {
 
 // Process the hand landmarks and draw on the canvas
 function onResults(results) {
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
   if (results.landmarks && results.landmarks.length > 0) {
     const landmarks = results.landmarks[0];
-    console.log(`landmarks: ${landmarks}`);
+    // Define finger indices
+    const fingerIndices = {
+      thumb: [4],
+      indexFinger: [8],
+      middleFinger: [12],
+      ringFinger: [16],
+      pinky: [20],
+    };
 
-    const indexFingerTip = landmarks[8]; // Index finger tip
+    // Adjust coordinates for mirroring and draw
+    Object.keys(fingerIndices).forEach((finger) => {
+      if (document.getElementById(finger).checked) {
+        fingerIndices[finger].forEach((index) => {
+          const landmark = landmarks[index];
+          const x = isMirrored
+            ? canvasElement.width - landmark.x * canvasElement.width
+            : landmark.x * canvasElement.width;
+          const y = landmark.y * canvasElement.height;
 
-    const x = indexFingerTip.x * canvasElement.width;
-    const y = indexFingerTip.y * canvasElement.height;
-
-    // Drawing logic
-    if (isDrawing) {
-      if (prevX !== null && prevY !== null) {
-        canvasCtx.beginPath();
-        canvasCtx.moveTo(prevX, prevY);
-        canvasCtx.lineTo(x, y);
-        canvasCtx.strokeStyle = "blue";
-        canvasCtx.lineWidth = 5;
-        canvasCtx.stroke();
+          if (isDrawing) {
+            if (prevPoints[index]) {
+              canvasCtx.beginPath();
+              canvasCtx.moveTo(prevPoints[index].x, prevPoints[index].y);
+              canvasCtx.lineTo(x, y);
+              canvasCtx.strokeStyle = "blue";
+              canvasCtx.lineWidth = 5;
+              canvasCtx.stroke();
+            }
+            prevPoints[index] = { x, y };
+          }
+        });
       }
-      prevX = x;
-      prevY = y;
-    }
-
-    // Draw landmarks
-    landmarks.forEach((landmark) => {
-      const cx = landmark.x * canvasElement.width;
-      const cy = landmark.y * canvasElement.height;
-      canvasCtx.beginPath();
-      canvasCtx.arc(cx, cy, 5, 0, 2 * Math.PI);
-      canvasCtx.fillStyle = "red";
-      canvasCtx.fill();
     });
   } else {
-    prevX = null;
-    prevY = null;
+    prevPoints = [];
   }
 }
 

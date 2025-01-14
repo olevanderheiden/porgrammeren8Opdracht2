@@ -8,11 +8,30 @@
   </head>
   <body>
     <div id="controls">
+      <p>Hide or show controls by pressing C on the keyboard</p>
       <select id="videoSelect"></select>
       <span id="cameraName"></span>
       <button id="mirrorButton">Mirror Image</button>
       <button id="displayCamera">Display camera</button>
+      <button id="showIndicators">Show finger indicators</button>
+      <div id="fingerSelection">
+        <p>Select the fingers to track</p>
+        <label><input type="checkbox" id="thumb" checked /> Thumb</label>
+        <label
+          ><input type="checkbox" id="indexFinger" checked /> Index
+          Finger</label
+        >
+        <label
+          ><input type="checkbox" id="middleFinger" checked /> Middle
+          Finger</label
+        >
+        <label
+          ><input type="checkbox" id="ringFinger" checked /> Ring Finger</label
+        >
+        <label><input type="checkbox" id="pinky" checked /> Pinky</label>
+      </div>
     </div>
+
     <video id="video" autoplay class="display"></video>
     <canvas id="canvas"></canvas>
     <script type="module" src="script.js"></script>
