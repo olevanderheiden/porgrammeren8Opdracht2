@@ -11,7 +11,7 @@ const trainButton = document.getElementById("trainButton");
 const predictButton = document.getElementById("predictButton");
 const poseCard = document.getElementById("poseCard");
 
-const k = 3;
+const k = 7;
 const machine = new kNear(k);
 let trainingData = [];
 let isMirrored = false;
