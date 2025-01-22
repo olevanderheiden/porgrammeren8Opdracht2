@@ -1,46 +1,36 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import kNear from "./knear.js";
 
 const videoElement = document.getElementById("video");
 const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const videoSelect = document.getElementById("videoSelect");
-const cameraName = document.getElementById("cameraName");
 const mirrorButton = document.getElementById("mirrorButton");
-const displayCamera = document.getElementById("displayCamera");
-const showIndicators = document.getElementById("showIndicators");
-const controls = document.getElementById("controls");
+const captureButton = document.getElementById("captureButton");
+const trainButton = document.getElementById("trainButton");
+const predictButton = document.getElementById("predictButton");
+const poseCard = document.getElementById("poseCard");
 
+const k = 3;
+const machine = new kNear(k);
+let trainingData = [];
 let isMirrored = false;
-let prevX = null;
-let prevY = null;
-let isDrawing = true;
-let prevPoints = [];
-let isShowingIndicators = false;
+let handLandmarker;
 
-// Mirror the video
-mirrorButton.onclick = () => {
-  isMirrored = !isMirrored;
-  videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
-};
-
-//show indicators
-showIndicators.onclick = () => {
-  0;
-};
-
-//display camera
-displayCamera.onclick = () => {
-  isShowingIndicators = !isShowingIndicators;
-  videoElement.className = isShowingIndicators ? "display" : "hide";
-};
-
-// Toggle controls visibility with "c" key
-document.addEventListener("keydown", (event) => {
-  if (event.key === "c" || event.key === "C") {
-    controls.style.display =
-      controls.style.display === "none" ? "block" : "none";
-  }
-});
+// Initialize video stream
+async function setupCamera(deviceId) {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { deviceId: deviceId ? { exact: deviceId } : undefined },
+  });
+  videoElement.srcObject = stream;
+  return new Promise((resolve) => {
+    videoElement.onloadedmetadata = () => {
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      resolve(videoElement);
+    };
+  });
+}
 
 // Populate video device options
 async function getCameras() {
@@ -55,34 +45,13 @@ async function getCameras() {
   });
 }
 
-// Set up camera
-async function setupCamera(deviceId) {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { deviceId: deviceId ? { exact: deviceId } : undefined },
-  });
-  videoElement.srcObject = stream;
-  const selectedDevice = videoSelect.options[videoSelect.selectedIndex]?.text;
-  cameraName.textContent = `Current Camera: ${selectedDevice}`;
-  return new Promise((resolve) => {
-    videoElement.onloadedmetadata = () => {
-      canvasElement.width = videoElement.videoWidth;
-      canvasElement.height = videoElement.videoHeight;
-      resolve(videoElement);
-    };
-  });
-}
-
-videoSelect.onchange = () => {
-  setupCamera(videoSelect.value);
-};
-
 // Initialize HandLandmarker
 async function initializeHandLandmarker() {
   const vision = await FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
   );
 
-  const handLandmarker = await HandLandmarker.createFromOptions(vision, {
+  handLandmarker = await HandLandmarker.createFromOptions(vision, {
     baseOptions: {
       modelAssetPath: "/models/hlm.task",
     },
@@ -94,58 +63,90 @@ async function initializeHandLandmarker() {
 
 // Process the hand landmarks and draw on the canvas
 function onResults(results) {
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   if (results.landmarks && results.landmarks.length > 0) {
     const landmarks = results.landmarks[0];
-    // Define finger indices
-    const fingerIndices = {
-      thumb: [4],
-      indexFinger: [8],
-      middleFinger: [12],
-      ringFinger: [16],
-      pinky: [20],
-    };
-
-    // Adjust coordinates for mirroring and draw
-    Object.keys(fingerIndices).forEach((finger) => {
-      if (document.getElementById(finger).checked) {
-        fingerIndices[finger].forEach((index) => {
-          const landmark = landmarks[index];
-          const x = isMirrored
-            ? canvasElement.width - landmark.x * canvasElement.width
-            : landmark.x * canvasElement.width;
-          const y = landmark.y * canvasElement.height;
-
-          if (isDrawing) {
-            if (prevPoints[index]) {
-              canvasCtx.beginPath();
-              canvasCtx.moveTo(prevPoints[index].x, prevPoints[index].y);
-              canvasCtx.lineTo(x, y);
-              canvasCtx.strokeStyle = "blue";
-              canvasCtx.lineWidth = 5;
-              canvasCtx.stroke();
-            }
-            prevPoints[index] = { x, y };
-          }
-        });
-      }
+    // Draw landmarks
+    landmarks.forEach((landmark) => {
+      const x = isMirrored
+        ? canvasElement.width - landmark.x * canvasElement.width
+        : landmark.x * canvasElement.width;
+      const y = landmark.y * canvasElement.height;
+      canvasCtx.beginPath();
+      canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
+      canvasCtx.fillStyle = "red";
+      canvasCtx.fill();
     });
-  } else {
-    prevPoints = [];
   }
 }
+
+// Capture hand pose for training
+captureButton.onclick = async () => {
+  const landmarks = await handLandmarker.detectForVideo(
+    videoElement,
+    performance.now()
+  );
+  if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
+    const vector = landmarks.landmarks[0].flatMap((landmark) => [
+      landmark.x,
+      landmark.y,
+    ]);
+    const label = prompt("Enter label for this pose (rock, paper, scissors):");
+    if (label) {
+      trainingData.push({ vector, label });
+      machine.learn(vector, label);
+      console.log(`Captured pose: ${label}`);
+    }
+  }
+};
+
+// Train the kNear model
+trainButton.onclick = () => {
+  console.log("Training complete");
+};
+
+// Predict hand pose
+predictButton.onclick = async () => {
+  const landmarks = await handLandmarker.detectForVideo(
+    videoElement,
+    performance.now()
+  );
+  if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
+    const vector = landmarks.landmarks[0].flatMap((landmark) => [
+      landmark.x,
+      landmark.y,
+    ]);
+    const pose = machine.classify(vector);
+    console.log(`Detected pose: ${pose}`);
+    poseCard.textContent = `Detected pose: ${pose}`;
+    poseCard.style.display = "block";
+  }
+};
+
+// Mirror the video
+mirrorButton.onclick = () => {
+  isMirrored = !isMirrored;
+  videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
+};
 
 // Main logic
 (async () => {
   await getCameras();
-  const video = await setupCamera(videoSelect.value);
-  video.play();
-  const handLandmarker = await initializeHandLandmarker();
+  await setupCamera(videoSelect.value);
+  handLandmarker = await initializeHandLandmarker();
 
   async function processFrame() {
-    const landmarks = handLandmarker.detectForVideo(video, performance.now());
+    const landmarks = await handLandmarker.detectForVideo(
+      videoElement,
+      performance.now()
+    );
     onResults(landmarks);
     requestAnimationFrame(processFrame);
   }
 
   processFrame();
 })();
+
+videoSelect.onchange = () => {
+  setupCamera(videoSelect.value);
+};
