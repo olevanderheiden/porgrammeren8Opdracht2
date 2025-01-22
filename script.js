@@ -100,9 +100,22 @@ captureButton.onclick = async () => {
   }
 };
 
-// Train the kNear model
+// Save training data to a JSON file
 trainButton.onclick = () => {
-  console.log("Training complete");
+  const dataStr = JSON.stringify(trainingData);
+  const dataUri =
+    "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+  const exportFileDefaultName = "trainingData.json";
+
+  const linkElement = document.createElement("a");
+  linkElement.setAttribute("href", dataUri);
+  linkElement.setAttribute("download", exportFileDefaultName);
+  linkElement.click();
+
+  alert(
+    "Training data saved. You can now use the Predict button to classify poses."
+  );
 };
 
 // Predict hand pose
