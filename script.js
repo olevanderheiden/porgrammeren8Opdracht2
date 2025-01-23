@@ -11,7 +11,7 @@ const trainButton = document.getElementById("trainButton");
 const predictButton = document.getElementById("predictButton");
 const poseCard = document.getElementById("poseCard");
 
-const k = 7;
+const k = 3;
 const machine = new kNear(k);
 let trainingData = [];
 let isMirrored = false;
@@ -56,7 +56,7 @@ async function initializeHandLandmarker() {
       modelAssetPath: "/models/hlm.task",
     },
     runningMode: "VIDEO",
-    numHands: 1,
+    numHands: 2, // Detect two hands
   });
   return handLandmarker;
 }
@@ -65,17 +65,18 @@ async function initializeHandLandmarker() {
 function onResults(results) {
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   if (results.landmarks && results.landmarks.length > 0) {
-    const landmarks = results.landmarks[0];
-    // Draw landmarks
-    landmarks.forEach((landmark) => {
-      const x = isMirrored
-        ? canvasElement.width - landmark.x * canvasElement.width
-        : landmark.x * canvasElement.width;
-      const y = landmark.y * canvasElement.height;
-      canvasCtx.beginPath();
-      canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
-      canvasCtx.fillStyle = "red";
-      canvasCtx.fill();
+    results.landmarks.forEach((landmarks) => {
+      // Draw landmarks for each hand
+      landmarks.forEach((landmark) => {
+        const x = isMirrored
+          ? canvasElement.width - landmark.x * canvasElement.width
+          : landmark.x * canvasElement.width;
+        const y = landmark.y * canvasElement.height;
+        canvasCtx.beginPath();
+        canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
+        canvasCtx.fillStyle = "red";
+        canvasCtx.fill();
+      });
     });
   }
 }
@@ -87,14 +88,15 @@ captureButton.onclick = async () => {
     performance.now()
   );
   if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const vector = landmarks.landmarks[0].flatMap((landmark) => [
-      landmark.x,
-      landmark.y,
-    ]);
-    const label = prompt("Enter label for this pose (rock, paper, scissors):");
+    const vectors = landmarks.landmarks.map((handLandmarks) =>
+      handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
+    );
+    const label = prompt(
+      "Enter label for this pose (stop, start, restart, next, previous, volume_up, volume_down):"
+    );
     if (label) {
-      trainingData.push({ vector, label });
-      machine.learn(vector, label);
+      trainingData.push({ vectors, label });
+      vectors.forEach((vector) => machine.learn(vector, label));
       console.log(`Captured pose: ${label}`);
     }
   }
@@ -118,20 +120,19 @@ trainButton.onclick = () => {
   );
 };
 
-// Predict hand pose
+// Predict hand pose using kNear
 predictButton.onclick = async () => {
   const landmarks = await handLandmarker.detectForVideo(
     videoElement,
     performance.now()
   );
   if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const vector = landmarks.landmarks[0].flatMap((landmark) => [
-      landmark.x,
-      landmark.y,
-    ]);
-    const pose = machine.classify(vector);
-    console.log(`Detected pose: ${pose}`);
-    poseCard.textContent = `Detected pose: ${pose}`;
+    const vectors = landmarks.landmarks.map((handLandmarks) =>
+      handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
+    );
+    const poses = vectors.map((vector) => machine.classify(vector));
+    console.log(`Detected poses: ${poses}`);
+    poseCard.textContent = `Detected poses: ${poses.join(", ")}`;
     poseCard.style.display = "block";
   }
 };
@@ -142,11 +143,31 @@ mirrorButton.onclick = () => {
   videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
 };
 
+// Load training data from JSON file
+async function loadTrainingData() {
+  try {
+    const response = await fetch("trainingData.json");
+    if (!response.ok) throw new Error("No training data found");
+    const data = await response.json();
+    trainingData = data;
+    data.forEach((item) => {
+      item.vectors.forEach((vector) => machine.learn(vector, item.label));
+    });
+    console.log("Training data loaded.");
+  } catch (error) {
+    console.log("No training data found or error loading data:", error);
+    alert(
+      "No training data found. Please create training data by capturing poses."
+    );
+  }
+}
+
 // Main logic
 (async () => {
   await getCameras();
   await setupCamera(videoSelect.value);
   handLandmarker = await initializeHandLandmarker();
+  await loadTrainingData();
 
   async function processFrame() {
     const landmarks = await handLandmarker.detectForVideo(
@@ -163,3 +184,10 @@ mirrorButton.onclick = () => {
 videoSelect.onchange = () => {
   setupCamera(videoSelect.value);
 };
+
+//Add event listener for pose learning funtion
+document.addEventListener("keydown", (event) => {
+  if (event.key === "l" || event.key === "L") {
+    captureButton.onclick();
+  }
+});
