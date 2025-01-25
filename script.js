@@ -88,15 +88,15 @@ captureButton.onclick = async () => {
     performance.now()
   );
   if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const vectors = landmarks.landmarks.map((handLandmarks) =>
+    const points = landmarks.landmarks.flatMap((handLandmarks) =>
       handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
     );
     const label = prompt(
       "Enter label for this pose (stop, start, restart, next, previous, volume_up, volume_down):"
     );
     if (label) {
-      trainingData.push({ vectors, label });
-      vectors.forEach((vector) => machine.learn(vector, label));
+      trainingData.push({ points, label });
+      machine.learn(points, label);
       console.log(`Captured pose: ${label}`);
     }
   }
@@ -105,7 +105,7 @@ captureButton.onclick = async () => {
 // Save training data to a JSON file
 trainButton.onclick = () => {
   const dataStr = JSON.stringify(trainingData);
-  alert(`Training data: $dataStr`);
+  alert(`Training data: ${dataStr}`);
   const dataUri =
     "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
@@ -128,10 +128,10 @@ predictButton.onclick = async () => {
     performance.now()
   );
   if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const vectors = landmarks.landmarks.map((handLandmarks) =>
+    const points = landmarks.landmarks.map((handLandmarks) =>
       handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
     );
-    const poses = vectors.map((vector) => machine.classify(vector));
+    const poses = points.map((point) => machine.classify(point));
     console.log(`Detected poses: ${poses}`);
     poseCard.textContent = `Detected poses: ${poses.join(", ")}`;
     poseCard.style.display = "block";
@@ -152,7 +152,7 @@ async function loadTrainingData() {
     const data = await response.json();
     trainingData = data;
     data.forEach((item) => {
-      item.vectors.forEach((vector) => machine.learn(vector, item.label));
+      item.points.forEach((point) => machine.learn(point, item.label));
     });
     console.log("Training data loaded.");
   } catch (error) {
@@ -186,7 +186,7 @@ videoSelect.onchange = () => {
   setupCamera(videoSelect.value);
 };
 
-//Add event listener for pose learning funtion
+// Add event listener for pose learning function
 document.addEventListener("keydown", (event) => {
   if (event.key === "l" || event.key === "L") {
     captureButton.onclick();
