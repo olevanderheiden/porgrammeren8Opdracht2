@@ -56,7 +56,7 @@ async function initializeHandLandmarker() {
       modelAssetPath: "/models/hlm.task",
     },
     runningMode: "VIDEO",
-    numHands: 2, // Detect two hands
+    numHands: 1,
   });
   return handLandmarker;
 }
@@ -105,6 +105,7 @@ captureButton.onclick = async () => {
 // Save training data to a JSON file
 trainButton.onclick = () => {
   const dataStr = JSON.stringify(trainingData);
+  alert(`Training data: $dataStr`);
   const dataUri =
     "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
@@ -116,7 +117,7 @@ trainButton.onclick = () => {
   linkElement.click();
 
   alert(
-    "Training data saved. You can now use the Predict button to classify poses."
+    "Training data saved. Store this file in the project directory to use it for prediction."
   );
 };
 
