@@ -4,29 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
-    <title>Rock Paper Scissors Training</title>
+    <title>Audio control ML5</title>
   </head>
   <body>
     <div id="controls">
       <select id="videoSelect"></select>
       <button id="mirrorButton">Mirror Image</button>
-      <button id="captureButton">Capture Pose</button>
-      <button id="trainButton">Train Model</button>
       <button id="predictButton">Predict Pose</button>
-      <div>
-        <p>stop: left hand open towards camera</p>
-        <p>Start: right hand open towards camera</p>
-        <p>Volume_down: right hand thumbs down</p>
-        <p>volume_up: right hand thums up</p>
-
-        <p>previous: left hand thumbs down</p>
-        <p>next: left hand thumbs up</p>
-        <p>restart: pieace sign with either hand</p>
-      </div>
       <div id="poseCard" class="card"></div>
     </div>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
     <script type="module" src="script.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
   </body>
 </html>

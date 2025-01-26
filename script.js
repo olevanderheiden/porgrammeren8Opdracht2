@@ -1,19 +1,13 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
-import kNear from "./knear.js";
+const nn = ml5.neuralNetwork({ task: "classification", debug: true });
 
 const videoElement = document.getElementById("video");
 const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const videoSelect = document.getElementById("videoSelect");
 const mirrorButton = document.getElementById("mirrorButton");
-const captureButton = document.getElementById("captureButton");
-const trainButton = document.getElementById("trainButton");
 const predictButton = document.getElementById("predictButton");
-const poseCard = document.getElementById("poseCard");
 
-const k = 3;
-const machine = new kNear(k);
-let trainingData = [];
 let isMirrored = false;
 let handLandmarker;
 
@@ -78,65 +72,13 @@ function onResults(results) {
         canvasCtx.fill();
       });
     });
+    //send the landmarks to the neural network
+    console.log(
+      `Sending landmarks to the neural network: ${results.landmarks}`
+    );
+    predict(results.landmarks);
   }
 }
-
-// Capture hand pose for training
-captureButton.onclick = async () => {
-  const landmarks = await handLandmarker.detectForVideo(
-    videoElement,
-    performance.now()
-  );
-  if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const points = landmarks.landmarks.flatMap((handLandmarks) =>
-      handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
-    );
-    const label = prompt(
-      "Enter label for this pose (stop, start, restart, next, previous, volume_up, volume_down):"
-    );
-    if (label) {
-      trainingData.push({ points, label });
-      machine.learn(points, label);
-      console.log(`Captured pose: ${label}`);
-    }
-  }
-};
-
-// Save training data to a JSON file
-trainButton.onclick = () => {
-  const dataStr = JSON.stringify(trainingData);
-  alert(`Training data: ${dataStr}`);
-  const dataUri =
-    "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-
-  const exportFileDefaultName = "trainingData.json";
-
-  const linkElement = document.createElement("a");
-  linkElement.setAttribute("href", dataUri);
-  linkElement.setAttribute("download", exportFileDefaultName);
-  linkElement.click();
-
-  alert(
-    "Training data saved. Store this file in the project directory to use it for prediction."
-  );
-};
-
-// Predict hand pose using kNear
-predictButton.onclick = async () => {
-  const landmarks = await handLandmarker.detectForVideo(
-    videoElement,
-    performance.now()
-  );
-  if (landmarks && landmarks.landmarks && landmarks.landmarks.length > 0) {
-    const points = landmarks.landmarks.map((handLandmarks) =>
-      handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
-    );
-    const poses = points.map((point) => machine.classify(point));
-    console.log(`Detected poses: ${poses}`);
-    poseCard.textContent = `Detected poses: ${poses.join(", ")}`;
-    poseCard.style.display = "block";
-  }
-};
 
 // Mirror the video
 mirrorButton.onclick = () => {
@@ -144,31 +86,12 @@ mirrorButton.onclick = () => {
   videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
 };
 
-// Load training data from JSON file
-async function loadTrainingData() {
-  try {
-    const response = await fetch("trainingData.json");
-    if (!response.ok) throw new Error("No training data found");
-    const data = await response.json();
-    trainingData = data;
-    data.forEach((item) => {
-      item.points.forEach((point) => machine.learn(point, item.label));
-    });
-    console.log("Training data loaded.");
-  } catch (error) {
-    console.log("No training data found or error loading data:", error);
-    alert(
-      "No training data found. Please create training data by capturing poses."
-    );
-  }
-}
-
 // Main logic
 (async () => {
+  await setupMl5();
   await getCameras();
   await setupCamera(videoSelect.value);
   handLandmarker = await initializeHandLandmarker();
-  await loadTrainingData();
 
   async function processFrame() {
     const landmarks = await handLandmarker.detectForVideo(
@@ -186,9 +109,40 @@ videoSelect.onchange = () => {
   setupCamera(videoSelect.value);
 };
 
-// Add event listener for pose learning function
-document.addEventListener("keydown", (event) => {
-  if (event.key === "l" || event.key === "L") {
-    captureButton.onclick();
+// Acquiring model details
+const modelDetails = {
+  model: "model/model.json",
+  metadata: "model/model_meta.json",
+  weights: "model/model.weights.bin",
+};
+
+//set up ml5 neural network
+async function setupMl5() {
+  await ml5.tf.setBackend("cpu");
+  await ml5.tf.ready();
+  nn.load(modelDetails, () => console.log("Model succesfully loaded!"));
+}
+
+// Predict the hand gesture
+async function predict(landmarks) {
+  console.log(`Predicting function called with landmarks: ${landmarks}`);
+  const points = landmarks.landmarks.flatMap((handLandmarks) =>
+    handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
+  );
+
+  console.log(`Points: ${points}`);
+  if (points.length === 42) {
+    console.log("Predicting...");
+    const prediction = await nn.classify(points, (error, results) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      const pose = results[0].label;
+      console.log(`Detected pose: ${pose}`);
+      poseCard.textContent = `Detected pose: ${pose}`;
+      poseCard.style.display = "block";
+    });
+    console.log(`Prediction: ${prediction}`);
   }
-});
+}
