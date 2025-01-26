@@ -11,6 +11,7 @@ trainingButton.addEventListener("click", async () => {
     .then((data) => {
       console.log(data);
       statusText.innerText = "Adding data to neural network";
+      data = data.toSorted(() => Math.random() - 0.5);
       data.forEach((pose) => {
         nn.addData(pose.points, { label: pose.label });
       });
