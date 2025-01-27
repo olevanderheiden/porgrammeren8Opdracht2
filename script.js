@@ -139,6 +139,8 @@ async function predict(landmarks) {
         results.forEach((result, index) => {});
         // Find the result with the highest confidence
 
+        setTimeout(() => resetCount(), 5000);
+
         bestResult = results[0];
 
         if (
@@ -152,7 +154,7 @@ async function predict(landmarks) {
 
         previousBestResult = bestResult;
 
-        if (sameBestResultCount >= 3) {
+        if (sameBestResultCount >= 25) {
           const pose = bestResult.label;
           console.log(`Detected pose: ${pose}`);
           poseCard.textContent = `Detected pose: ${pose}`;
@@ -160,6 +162,8 @@ async function predict(landmarks) {
 
           // Trigger music control action here
           controlMusic(pose);
+          clearTimeout(resetCount);
+          resetCount();
         }
 
         const pose = bestResult.label;
@@ -170,6 +174,11 @@ async function predict(landmarks) {
       }
     });
   }
+}
+
+// Reset the counter
+function resetCount() {
+  sameBestResultCount = 0;
 }
 
 // Function to control music based on the detected pose
