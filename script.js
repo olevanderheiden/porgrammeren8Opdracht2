@@ -98,7 +98,6 @@ mirrorButton.onclick = () => {
       videoElement,
       performance.now()
     );
-    // console.log(`Landmarks: ${JSON.stringify(landmarks.landmarks)}`);
     onResults(landmarks);
     requestAnimationFrame(processFrame);
   }
@@ -129,9 +128,7 @@ async function predict(landmarks) {
   // Flatten the landmarks array to get the x and y coordinates
   const points = landmarks.flatMap((landmark) => [landmark.x, landmark.y]);
 
-  console.log(`Points: ${points}`);
   if (points.length === 42) {
-    console.log("Predicting...");
     nn.classify(points, (results, error) => {
       if (error) {
         console.error(error);
