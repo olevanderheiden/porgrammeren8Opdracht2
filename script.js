@@ -6,7 +6,9 @@ const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const videoSelect = document.getElementById("videoSelect");
 const mirrorButton = document.getElementById("mirrorButton");
-const predictButton = document.getElementById("predictButton");
+let bestResult;
+let previousBestResult;
+let sameBestResultCount = 0;
 
 let isMirrored = false;
 let handLandmarker;
@@ -124,8 +126,6 @@ async function setupMl5() {
 
 // Predict the hand gesture
 async function predict(landmarks) {
-  console.log(`Predicting function called with landmarks: ${landmarks}`);
-
   // Flatten the landmarks array to get the x and y coordinates
   const points = landmarks.flatMap((landmark) => [landmark.x, landmark.y]);
 
@@ -139,18 +139,73 @@ async function predict(landmarks) {
       }
       console.log("Results:", results);
       if (results && results.length > 0) {
-        results.forEach((result, index) => {
-          console.log(`Result ${index}:`, result);
-        });
+        results.forEach((result, index) => {});
         // Find the result with the highest confidence
-        const bestResult = results[0];
+
+        bestResult = results[0];
+
+        if (
+          previousBestResult &&
+          bestResult.label === previousBestResult.label
+        ) {
+          sameBestResultCount++;
+        } else {
+          sameBestResultCount = 0;
+        }
+
+        previousBestResult = bestResult;
+
+        if (sameBestResultCount >= 3) {
+          const pose = bestResult.label;
+          console.log(`Detected pose: ${pose}`);
+          poseCard.textContent = `Detected pose: ${pose}`;
+          poseCard.style.display = "block";
+
+          // Trigger music control action here
+          controlMusic(pose);
+        }
+
         const pose = bestResult.label;
-        console.log(`Detected pose: ${pose}`);
         poseCard.textContent = `Detected pose: ${pose}`;
         poseCard.style.display = "block";
       } else {
         console.error("No results returned from classification.");
       }
     });
+  }
+}
+
+// Function to control music based on the detected pose
+function controlMusic(pose) {
+  switch (pose) {
+    case "start":
+      // Code to play music
+      console.log("Playing music");
+      break;
+    case "stop":
+      // Code to pause music
+      console.log("Pausing music");
+      break;
+    case "next":
+      // Code to skip to the next track
+      console.log("Next track");
+      break;
+    case "previous":
+      // Code to go to the previous track
+      console.log("Previous track");
+      break;
+    case "volume_up":
+      // Code to increase volume
+      console.log("Increasing volume");
+      break;
+    case "volume_down":
+      // Code to decrease volume
+      console.log("Decreasing volume");
+      break;
+    case "restart":
+      // Code to restart the current track
+      console.log("Restarting track");
+    default:
+      console.log("Unknown pose");
   }
 }
