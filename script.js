@@ -134,7 +134,6 @@ async function predict(landmarks) {
         console.error(error);
         return;
       }
-      console.log("Results:", results);
       if (results && results.length > 0) {
         results.forEach((result, index) => {});
         // Find the result with the highest confidence
@@ -149,21 +148,25 @@ async function predict(landmarks) {
         ) {
           sameBestResultCount++;
         } else {
+          console.log("Different pose detected");
           sameBestResultCount = 0;
         }
 
         previousBestResult = bestResult;
 
-        if (sameBestResultCount >= 25) {
+        if (sameBestResultCount === 10) {
           const pose = bestResult.label;
-          console.log(`Detected pose: ${pose}`);
+          // console.log(`Detected pose: ${pose}`);
           poseCard.textContent = `Detected pose: ${pose}`;
           poseCard.style.display = "block";
 
           // Trigger music control action here
           controlMusic(pose);
+        }
+        if (sameBestResultCount < 10) {
+          //same pose detected over 25 times in a row cooldown
           clearTimeout(resetCount);
-          resetCount();
+          setTimeout(() => resetCount(), 2000);
         }
 
         const pose = bestResult.label;
