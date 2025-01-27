@@ -71,12 +71,10 @@ function onResults(results) {
         canvasCtx.fillStyle = "red";
         canvasCtx.fill();
       });
+
+      // Send landmarks to ml5 for classification
+      predict(landmarks);
     });
-    //send the landmarks to the neural network
-    console.log(
-      `Sending landmarks to the neural network: ${results.landmarks}`
-    );
-    predict(results.landmarks);
   }
 }
 
@@ -98,6 +96,7 @@ mirrorButton.onclick = () => {
       videoElement,
       performance.now()
     );
+    // console.log(`Landmarks: ${JSON.stringify(landmarks.landmarks)}`);
     onResults(landmarks);
     requestAnimationFrame(processFrame);
   }
@@ -126,23 +125,32 @@ async function setupMl5() {
 // Predict the hand gesture
 async function predict(landmarks) {
   console.log(`Predicting function called with landmarks: ${landmarks}`);
-  const points = landmarks.landmarks.flatMap((handLandmarks) =>
-    handLandmarks.flatMap((landmark) => [landmark.x, landmark.y])
-  );
+
+  // Flatten the landmarks array to get the x and y coordinates
+  const points = landmarks.flatMap((landmark) => [landmark.x, landmark.y]);
 
   console.log(`Points: ${points}`);
   if (points.length === 42) {
     console.log("Predicting...");
-    const prediction = await nn.classify(points, (error, results) => {
+    nn.classify(points, (results, error) => {
       if (error) {
         console.error(error);
         return;
       }
-      const pose = results[0].label;
-      console.log(`Detected pose: ${pose}`);
-      poseCard.textContent = `Detected pose: ${pose}`;
-      poseCard.style.display = "block";
+      console.log("Results:", results);
+      if (results && results.length > 0) {
+        results.forEach((result, index) => {
+          console.log(`Result ${index}:`, result);
+        });
+        // Find the result with the highest confidence
+        const bestResult = results[0];
+        const pose = bestResult.label;
+        console.log(`Detected pose: ${pose}`);
+        poseCard.textContent = `Detected pose: ${pose}`;
+        poseCard.style.display = "block";
+      } else {
+        console.error("No results returned from classification.");
+      }
     });
-    console.log(`Prediction: ${prediction}`);
   }
 }
