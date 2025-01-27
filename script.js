@@ -6,12 +6,56 @@ const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const videoSelect = document.getElementById("videoSelect");
 const mirrorButton = document.getElementById("mirrorButton");
+const loadPlaylistButton = document.getElementById("loadPlaylistButton");
 let bestResult;
 let previousBestResult;
 let sameBestResultCount = 0;
+let youtubePlayer;
+let playlistId = "PLzFTGYa_evXjiiu4xLpzWlykAxNcD97rS";
+let volume;
 
 let isMirrored = false;
 let handLandmarker;
+
+// YouTube IFrame Player API initialization
+function onYouTubeIframeAPIReady() {
+  console.log("YouTube IFrame API is ready");
+  youtubePlayer = new YT.Player("player", {
+    height: "390",
+    width: "640",
+    playerVars: {
+      listType: "playlist",
+      list: playlistId,
+    },
+    events: {
+      onReady: initializeVolume,
+    },
+  });
+  console.log("YouTube Player initialized:", youtubePlayer);
+}
+
+// Function to load a new playlist
+function loadPlaylist(playlistId) {
+  if (!youtubePlayer) {
+    console.error("YouTube player is not initialized.");
+    return;
+  }
+
+  youtubePlayer.loadPlaylist({
+    listType: "playlist",
+    list: playlistId,
+  });
+}
+
+// Initialize volume
+function initializeVolume() {
+  if (youtubePlayer && youtubePlayer.getVolume) {
+    volume = youtubePlayer.getVolume();
+    console.log("Volume initialized:", volume);
+  } else {
+    console.error("YouTube player is not initialized.");
+  }
+}
 
 // Initialize video stream
 async function setupCamera(deviceId) {
@@ -84,6 +128,12 @@ function onResults(results) {
 mirrorButton.onclick = () => {
   isMirrored = !isMirrored;
   videoElement.style.transform = isMirrored ? "scaleX(-1)" : "scaleX(1)";
+};
+
+// Load a new playlist
+loadPlaylistButton.onclick = () => {
+  playlistId = document.getElementById("playlistIdInput").value;
+  loadPlaylist(playlistId);
 };
 
 // Main logic
@@ -186,33 +236,41 @@ function resetCount() {
 
 // Function to control music based on the detected pose
 function controlMusic(pose) {
+  if (!youtubePlayer) {
+    console.error("YouTube player is not initialized.");
+    return;
+  }
+
   switch (pose) {
     case "start":
-      // Code to play music
+      youtubePlayer.playVideo();
       console.log("Playing music");
       break;
     case "stop":
-      // Code to pause music
+      youtubePlayer.pauseVideo();
       console.log("Pausing music");
       break;
     case "next":
-      // Code to skip to the next track
+      youtubePlayer.nextVideo();
       console.log("Next track");
       break;
     case "previous":
-      // Code to go to the previous track
+      youtubePlayer.previousVideo();
       console.log("Previous track");
       break;
     case "volume_up":
-      // Code to increase volume
+      youtubePlayer.setVolume(volume + 10, 100);
+      initializeVolume();
       console.log("Increasing volume");
       break;
     case "volume_down":
-      // Code to decrease volume
+      youtubePlayer.setVolume(volume - 10, 0);
+      initializeVolume();
       console.log("Decreasing volume");
       break;
     case "restart":
-      // Code to restart the current track
+      youtubePlayer.seekTo(0);
+      youtubePlayer.playVideo();
       console.log("Restarting track");
     default:
       console.log("Unknown pose");
