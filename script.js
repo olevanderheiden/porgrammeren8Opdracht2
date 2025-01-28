@@ -148,7 +148,23 @@ mirrorButton.onclick = () => {
 
 // Load a new playlist
 loadPlaylistButton.onclick = () => {
-  playlistId = document.getElementById("playlistIdInput").value;
+  let update = false;
+  let curentPlaylistId = document.getElementById("playlistIdInput").value;
+  if (curentPlaylistId.includes("list=")) {
+    update = true;
+    playlistId = curentPlaylistId.split("list=")[1];
+  } else if (
+    playlistId.match(/^[a-zA-Z0-9_-]{34}$/) ||
+    playlistId === "" ||
+    playlistId === null
+  ) {
+    update = true;
+    playlistId = document.getElementById("playlistIdInput").value;
+  } else {
+    alert(
+      "You have entered an invalid playlist ID! Refresh the page and try again."
+    );
+  }
   loadPlaylist(playlistId);
 };
 
