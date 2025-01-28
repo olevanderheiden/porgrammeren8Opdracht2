@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <title>ML5 Youtube audio player</title>
-    <script src="https://www.youtube.com/iframe_api"></script>
   </head>
   <body>
     <div id="controls">
@@ -18,12 +17,12 @@
       />
       <button id="loadPlaylistButton">Load Playlist</button>
       <div id="poseCard" class="card"></div>
+      <div id="songCard" class="card"></div>
+      <div id="player"></div>
     </div>
-    <div id="player"></div>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
     <script type="module" src="script.js"></script>
     <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>

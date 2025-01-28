@@ -1,7 +1,13 @@
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 const nn = ml5.neuralNetwork({ task: "classification", debug: true });
 
+// Ensure the YouTube IFrame API script is loaded
+let youtubeScriptTag = document.createElement("script");
+youtubeScriptTag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(youtubeScriptTag);
+
 const videoElement = document.getElementById("video");
+const songCard = document.getElementById("songCard");
 const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const videoSelect = document.getElementById("videoSelect");
@@ -18,29 +24,33 @@ let isMirrored = false;
 let handLandmarker;
 
 // YouTube IFrame Player API initialization
-function onYouTubeIframeAPIReady() {
+window.onYouTubeIframeAPIReady = function () {
   console.log("YouTube IFrame API is ready");
-  youtubePlayer = new YT.Player("player", {
-    height: "390",
-    width: "640",
-    playerVars: {
-      listType: "playlist",
-      list: playlistId,
-    },
-    events: {
-      onReady: initializeVolume,
-    },
-  });
-  console.log("YouTube Player initialized:", youtubePlayer);
-}
+  try {
+    youtubePlayer = new YT.Player("player", {
+      height: "0",
+      width: "0",
+      playerVars: {
+        listType: "playlist",
+        list: playlistId,
+        enablejsapi: 1,
+        origin: window.location.origin,
+      },
+      events: {
+        onReady: initializeVolume,
+        onStateChange: updateSongTitle,
+      },
+    });
+    console.log("YouTube Player initialized:", youtubePlayer);
+  } catch (error) {
+    if (!error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
+      console.error("Error initializing YouTube Player:", error);
+    }
+  }
+};
 
 // Function to load a new playlist
 function loadPlaylist(playlistId) {
-  if (!youtubePlayer) {
-    console.error("YouTube player is not initialized.");
-    return;
-  }
-
   youtubePlayer.loadPlaylist({
     listType: "playlist",
     list: playlistId,
@@ -51,10 +61,16 @@ function loadPlaylist(playlistId) {
 function initializeVolume() {
   if (youtubePlayer && youtubePlayer.getVolume) {
     volume = youtubePlayer.getVolume();
-    console.log("Volume initialized:", volume);
   } else {
     console.error("YouTube player is not initialized.");
   }
+}
+
+// Function to update the song title
+function updateSongTitle() {
+  const videoData = youtubePlayer.getVideoData();
+  const title = videoData.title;
+  songCard.textContent = `Now Playing: ${title}`;
 }
 
 // Initialize video stream
@@ -206,7 +222,6 @@ async function predict(landmarks) {
 
         if (sameBestResultCount === 10) {
           const pose = bestResult.label;
-          // console.log(`Detected pose: ${pose}`);
           poseCard.textContent = `Detected pose: ${pose}`;
           poseCard.style.display = "block";
 
@@ -261,12 +276,12 @@ function controlMusic(pose) {
     case "volume_up":
       youtubePlayer.setVolume(volume + 10, 100);
       initializeVolume();
-      console.log("Increasing volume");
+      console.log(`Increasing volume to ${volume}`);
       break;
     case "volume_down":
       youtubePlayer.setVolume(volume - 10, 0);
       initializeVolume();
-      console.log("Decreasing volume");
+      console.log(`Decreasing volume to ${volume}`);
       break;
     case "restart":
       youtubePlayer.seekTo(0);
@@ -276,3 +291,10 @@ function controlMusic(pose) {
       console.log("Unknown pose");
   }
 }
+
+// Catch and ignore blocked requests
+window.addEventListener("error", function (event) {
+  if (event.message.includes("ERR_BLOCKED_BY_CLIENT")) {
+    event.preventDefault();
+  }
+});
