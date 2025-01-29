@@ -17,11 +17,17 @@ Installeer node(npm) om packages die deze applicatie gebruikt te kunnen installe
 
 1. Houd je hand voor de camera om een pose te leren. Druk terwijl je dit doet op de "Capture pose" knop. Herhaal dit proces voor alle poses meerdere malen om te zorgen dat de data zo accuraat mogelijk word.
 2. Mocht de camera van jouw perspectief gespiegeld zijn druk dan op de "Mirror Image" knop.
-3. Als je genoeg hebt getrained druk dan op de "Train" Knop. Dit geeft een .json bestand terug die je kan gebruiken om een ml5 algoritme te trainen.
+3. Als je genoeg hebt getrained druk dan op de "Train" Knop. Dit geeft een .json bestand terug die je kan gebruiken om een [ml5 algoritme te trainen](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/ml5Training).
 
-Tip: Wil je andere poses voor de verschillende acties trainen verwijder dan de trainingData.json uit de project map en ververs de pagina. Je zal een waarschuwing krijgen dat er geen training data is en dat je die zelf moet maken. 
+Tip: Wil je andere poses voor de verschillende acties trainen verwijder dan de trainingData.json uit de project map en ververs de pagina. Je zal een waarschuwing krijgen dat er geen training data is en dat je die zelf moet maken.
 De rest van de stappen zijn het zelfde als waneer het bestand al bestaat. Je kan nu zelf poses bedenken die voor jouw het best passen bij de besturing van de youtube muziek app.
 
 ## waarschuwing
 
 Het is mogelijk dat de applicatie niet werkt door vernieuwde versies van mediapipe task vision. Mocht dit het geval zijn vraag dan aan de ontwikkelaar van deze app om de node_modules map of trouble shoot de ap
+
+## Andere delen van het project:
+
+- [main](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/main)
+- [ML5 Training](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/ml5Training)
+- [ML5 Music Control](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/musicControlMl5)
