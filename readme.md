@@ -1,6 +1,6 @@
 ## Ml5 Music Control
 
-Deze aplicatie maakt het mogelijk om een youtube playlist aftespelen en deze met gebaren te besturen. Je kan hier een youtube link (https://www.youtube.com/watch?v=example&list=example)
+Deze aplicatie maakt het mogelijk om een youtube playlist aftespelen en deze met gebaren te besturen. Je kan hier een youtube link (youtube.com/watch?v=example&list=example)
 of en playlist id(tekst na list= in de url) invullen. Je kan doormiddel van voorgetrainde gebaren de muziek besturen.
 
 ## Voorbereiding
@@ -19,7 +19,7 @@ Tip: Het wordt aangeraden om een incognito tabblad te gebruiken in opera GX. And
 ## Gebruiken
 
 1. zorg ervoor Dat het project een map met de naam "model" bevat(niet te verwarren met models of node_modules). Deze map moet 3 bestanden bevatten: model_meta.json, model.json en een model.weights.bin.
-   Deze bestanden kunnen verkregen worden door middel van de ml5Training app. (dit is enkel nodig mocht er gebruik gemaakt willen worden van zelf gekozen poses). Mochten er één of meerder van deze bestanden
+   Deze bestanden kunnen verkregen worden door middel van de [ml5Training app](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/ml5Training). (dit is enkel nodig mocht er gebruik gemaakt willen worden van zelf gekozen poses). Mochten er één of meerder van deze bestanden
    ontbreken dan zal de app niet naar behoren werken.
 2. Zoek een playlist op die je wil beluisten(enkel youtube links of id's worden ondersteund). Vul deze link in bij het text veld met de tekst "Enter YouTube Playlist ID or url". En druk op de "load playlist"knop.
 3. Gebruik de poses die je getraint hebt of de ingebrepen poses om de muziek te bedienen.
@@ -34,7 +34,7 @@ Tip: Het wordt aangeraden om een incognito tabblad te gebruiken in opera GX. And
 
 4. Mocht je er tegenaan lopen dat je camera gespiegeld is druk dan op de "Mirror Image" knop. Let op dit heeft geen invloed om de vaardigheid van ml5 om poses te herkennen en is enkel voor de gebruiker.
 
-Tip: Wees niet verbaast als het uitvoeren van de actie die je wil uitvoeren met gebaren langer duurd dan verwacht dit komt doordat er 10× achter elkaar het zelfde gebaar herkent moet worden voordat de actie wordt uitgevoerd. 
+Tip: Wees niet verbaast als het uitvoeren van de actie die je wil uitvoeren met gebaren langer duurd dan verwacht dit komt doordat er 10× achter elkaar het zelfde gebaar herkent moet worden voordat de actie wordt uitgevoerd.
 Dit is om te voorkomen dat acties te snel achter elkaar uitgevoerd kunnen worden. Mocht u zich hier aan storen of is 10× voor u niet genoeg verrander dan de const requiredAmountOfChecks op regel 23 van script.js
 
 ## waarschuwingen
@@ -42,3 +42,9 @@ Dit is om te voorkomen dat acties te snel achter elkaar uitgevoerd kunnen worden
 - Het is mogelijk dat de applicatie niet werkt door vernieuwde versies van mediapipe task vision die gedownload wordt door npm. Mocht dit het geval zijn vraag dan aan de ontwikkelaar van deze app om de node_modules map of trouble shoot de ap.
 - Als er geen playlist wordt ingevuld dan zal de voorgeprogrammeerde playlist worden gestart dit is de game muziek van Kai no kiseki. Het kan voorkomen dat de nieuw ingevulde playlist niet gelijk goed start en
   de voorgeprogrammeerde daar inplaatsvan start. Druk in dat geval nogmaal op de "load playlist" knop dit zou het probleem moeten verhelpen.
+
+  ## Andere delen van het project:
+
+- [main](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/main)
+- [KNN Training](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/KNNTraining)
+- [ML5 Training](https://github.com/olevanderheiden/porgrammeren8Opdracht2/tree/ml5Training)
