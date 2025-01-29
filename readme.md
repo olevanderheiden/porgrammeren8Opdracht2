@@ -24,7 +24,7 @@ Tip: Het wordt aangeraden om een incognito tabblad te gebruiken in opera GX. And
 2. Zoek een playlist op die je wil beluisten(enkel youtube links of id's worden ondersteund). Vul deze link in bij het text veld met de tekst "Enter YouTube Playlist ID or url". En druk op de "load playlist"knop.
 3. Gebruik de poses die je getraint hebt of de ingebrepen poses om de muziek te bedienen.
 
-- Rechter open hand omhoog = Start
+- Rechter open hand omhoog is Start
 - Linker open hand omhoog is stop
 - Rechter Vuist met duim omhoog is volume omhoog
 - Rechter vuist met duim omlaag is volume omlaag
