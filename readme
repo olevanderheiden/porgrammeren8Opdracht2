@@ -34,7 +34,8 @@ Installeer node(npm) om packages die deze applicatie gebruikt te kunnen installe
 
 4. Mocht je er tegenaan lopen dat je camera gespiegeld is druk dan op de "Mirror Image" knop. Let op dit heeft geen invloed om de vaardigheid van ml5 om poses te herkennen en is enkel voor de gebruiker.
 
-# Tip: Wees niet verbaast als het uitvoeren van de actie die je wil uitvoeren met gebaren langer duurd dan verwcht dit komt doordat er 10× achter elkaar het zelfde gebaar herkent moet worden voordat de actie wordt uitgevoerd. Dit is om te voorkomen dat acties te snel achter elkaar uitgevoerd kunnen worden. Mocht u zich hier aan storen of is 10× voor u niet genoeg verrander dan de const requiredAmountOfChecks op regel 23 van script.js
+# Tip: Wees niet verbaast als het uitvoeren van de actie die je wil uitvoeren met gebaren langer duurd dan verwacht dit komt doordat er 10× achter elkaar het zelfde gebaar herkent moet worden voordat de actie wordt uitgevoerd. 
+Dit is om te voorkomen dat acties te snel achter elkaar uitgevoerd kunnen worden. Mocht u zich hier aan storen of is 10× voor u niet genoeg verrander dan de const requiredAmountOfChecks op regel 23 van script.js
 
 ## waarschuwingen
 
