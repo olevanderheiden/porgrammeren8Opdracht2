@@ -19,6 +19,8 @@ let sameBestResultCount = 0;
 let youtubePlayer;
 let playlistId = "PLzFTGYa_evXjiiu4xLpzWlykAxNcD97rS";
 let volume;
+// Number of checks required to confirm a pose
+const requiredAmountOfChecks = 10;
 
 let isMirrored = false;
 let handLandmarker;
@@ -236,7 +238,7 @@ async function predict(landmarks) {
 
         previousBestResult = bestResult;
 
-        if (sameBestResultCount === 10) {
+        if (sameBestResultCount === requiredAmountOfChecks) {
           const pose = bestResult.label;
           poseCard.textContent = `Detected pose: ${pose}`;
           poseCard.style.display = "block";
@@ -244,7 +246,7 @@ async function predict(landmarks) {
           // Trigger music control action here
           controlMusic(pose);
         }
-        if (sameBestResultCount < 10) {
+        if (sameBestResultCount < requiredAmountOfChecks) {
           //same pose detected over 25 times in a row cooldown
           clearTimeout(resetCount);
           setTimeout(() => resetCount(), 2000);
