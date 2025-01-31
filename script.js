@@ -247,7 +247,7 @@ async function predict(landmarks) {
           controlMusic(pose);
         }
         if (sameBestResultCount < requiredAmountOfChecks) {
-          //same pose detected over 25 times in a row cooldown
+          //same pose detected over 10 times in a row cooldown
           clearTimeout(resetCount);
           setTimeout(() => resetCount(), 2000);
         }
